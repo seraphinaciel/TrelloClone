@@ -4,6 +4,7 @@ import { hourSelector, minuteState } from "./atoms";
 function App() {
   const [minutes, setMinutes] = useRecoilState(minuteState);
   // minutes : string
+  // input으로 state를 가져와서 수정하고 output으로 return : 셀렉터
 
   const hours = useRecoilValue(hourSelector);
 
@@ -21,6 +22,7 @@ function App() {
         placeholder="Minutes"
       />
       <input value={hours} type="number" placeholder="Hours" />
+      {/* hourSelector와 input 연결 */}
     </>
   );
 }
