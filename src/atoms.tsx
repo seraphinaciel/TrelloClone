@@ -1,15 +1,29 @@
 import { atom, selector } from "recoil";
 
-export const minuteState = atom({
-  key: "minutes",
-  default: 0,
+export const toDoState = atom({
+  key: "toDo",
+  default: ["a", "b", "c", "d", "e", "f"],
 });
 
-export const hourSelector = selector({
-  key: "hours",
-  get: ({ get }) => {
-    const minutes = get(minuteState);
-    // selector안에서 atom에 접근하고 싶다면 get(atom의 값을 가져옴) 사용
-    return minutes / 60; // hourSelector의 value
-  },
-});
+// export const categoryState = atom<Categories>({
+//   key: "category",
+//   default: Categories.TO_DO,
+// });
+
+// export const toDoSelector = selector({
+//   key: "toDoSelector",
+//   get: ({ get }) => {
+//     const toDos = get(toDoState);
+
+//     const category = get(categoryState);
+//     if (category === Categories.OTHER) {
+//       return toDos.filter(
+//         (todo) =>
+//           todo.category !== Categories.TO_DO &&
+//           todo.category !== Categories.DOING &&
+//           todo.category !== Categories.DONE
+//       );
+//     }
+//     return toDos.filter((toDo) => toDo.category === category);
+//   },
+// });

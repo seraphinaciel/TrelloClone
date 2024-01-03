@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { ThemeProvider, createGlobalStyle } from "styled-components";
 
-import { basicTheme } from "./theme";
+import { darkTheme } from "./theme";
 import { RecoilRoot } from "recoil";
 
 const GlobalStyle = createGlobalStyle`
@@ -61,7 +61,7 @@ table {
 body {
   font-family: 'Roboto', sans-serif;
   background-color:${(props) => props.theme.bg};
-  color:${(props) => props.theme.text};
+  color:black;
   line-height: 1.5;
 }
 a {
@@ -74,12 +74,12 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <React.StrictMode>
-    <RecoilRoot>
-      <ThemeProvider theme={basicTheme}>
-        <GlobalStyle />
-        <App />
-      </ThemeProvider>
-    </RecoilRoot>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <RecoilRoot>
+    <ThemeProvider theme={darkTheme}>
+      <GlobalStyle />
+      <App />
+    </ThemeProvider>
+  </RecoilRoot>
+  // </React.StrictMode>
 );
