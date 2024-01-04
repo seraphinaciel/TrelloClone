@@ -139,9 +139,10 @@ function App() {
 
 # 데이터 리모델링(recoil)
 
-## 드래그를 하면 default의 배열을 뒤바꾸고 싶다
+## onDragEnd
 
-onDragEnd와 recoil을 사용!
+- 드래그를 하면 default의 배열을 뒤바꾸고 싶다
+- onDragEnd와 recoil을 사용!
 
 ```ts
 // atoms.tsx
@@ -191,3 +192,124 @@ function App() {
   };
 }
 ```
+
+# react memo
+
+- react.js에서 기본적으로 parent component의 state가 변하면 해당 컴포넌트의 children은 다시 렌더링 됨
+  기본 기능이 필요없을 때 react memo 사용
+- prop이 바뀌지 않으면 이 컴포넌트는 렌더링 하지 맛!
+
+`export default React.memo(DraggableCard)`
+
+❗ 드래그앤드롭을 빠르게 시도할 경우 카드가 복제되는 현상발생
+React 18에 생긴 [flushSync](https://github.com/atlassian/react-beautiful-dnd/issues/2475) 기능을 통한 해결
+➡ 남용시 큰 성능 저하를 초래
+
+# Multi Boards
+
+## 여러개 만들어 보기
+
+state를 object로 만듦
+
+```ts
+// toDoState의 확장성
+interface IToDoState {
+  [key: string]: string[];
+}
+
+export const toDoState = atom<IToDoState>({
+  key: "toDo",
+  default: {
+    to_do: ["a", "b"],
+    doing: ["c", "d"],
+    done: ["e", "f"],
+  },
+});
+```
+
+App.tsx에서 map은 못쓰게 됨(array에서만 사용 가능)
+
+```js
+const tomato = {
+  x: ["a", "b"],
+  y: ["c", "d"],
+};
+// 1
+// 주어진 객체의 속성 이름들을 일반적인 반복문과 동일한 순서로 순회되는 열거할 수 있는 배열로 반환
+Object.keys(tomato);
+// (2) ['x', 'y']
+tomato["x"];
+tomato["y"];
+
+// 2 1과 똑같음, boardId를 배열에 넣음, boardId를 이용해 토마토 내부도 확인
+Object.keys(tomato).map((boardId) => tomato[boardId]);
+```
+
+```ts
+function App() {
+  return (
+    <Boards>
+      {Object.keys(toDos).map((boardId) => (
+        <Board key={boardId} toDos={toDos[boardId]} boardId={boardId} />
+      ))}
+    </Boards>
+  );
+}
+```
+
+## 하나의 보드에서 움직이기
+
+수정이 일어난 보드만 복사, 복사본을 기존에 붙여 넣는다.
+[동일](#onDragEnd)
+
+```ts
+const [toDos, setToDos] = useRecoilState(toDoState);
+const onDragEnd = (info: DropResult) => {
+  const { destination, draggableId, source } = info;
+  // same board movement
+  if (destination?.droppableId === source.droppableId) {
+    // allboard 모든 보드 가져오기
+    setToDos((allBoards) => {
+      // 변화가 일어난 보드만 복사
+      const boardCopy = [...allBoards[source.droppableId]];
+      // const boardCopy = [...allBoards["to do"(현재 상태)]];
+      boardCopy.splice(source.index, 1);
+      boardCopy.splice(destination?.index, 0, draggableId);
+
+      return {
+        // 기존 boards
+        ...allBoards,
+        // "to do"(현재 상태): 복사한 보드,
+        [source.droppableId]: boardCopy,
+      };
+    });
+  }
+};
+```
+
+## "to do"(현재 상태)
+
+source board에서 item을 제거
+taget board로 가서 제거한 item을 삽입
+
+```ts
+if (destination?.droppableId !== source.droppableId) {
+  setToDos((allBoards) => {
+    // source board의 copy, 이동이 시작된 지점의 보드 아이디를 알 수 있다.
+    const sourceBoard = [...allBoards[source.droppableId]];
+    // 움직임이 끝나는 보드의 아이디
+    const destinationBoard = [...allBoards[destination.droppableId]];
+    // 움직임이 시작 될 때 index 삭제
+    sourceBoard.splice(source.index, 1);
+    // draggableId 움직임이 끝나는 보드의 index에 넣어줌
+    destinationBoard.splice(destination?.index, 0, draggableId);
+    return {
+      ...allBoards,
+      [source.droppableId]: sourceBoard,
+      [destination.droppableId]: destinationBoard,
+    };
+  });
+}
+```
+
+# style 변경
