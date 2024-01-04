@@ -376,3 +376,5 @@ const onClick = () => {
 ```
 
     // data에서 오는 실제 toDo를 만들어야 함
+
+string에서 object라고 알려주려고 prop 변경
