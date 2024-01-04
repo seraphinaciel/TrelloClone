@@ -313,3 +313,66 @@ if (destination?.droppableId !== source.droppableId) {
 ```
 
 # style 변경
+
+### Droppablestate snapshot
+
+- `isDraggingOver` : 현재 선택한 Draggable이 특정 Droppable위에 드래깅 되고 있는지 여부 확인
+- `draggingOverWith` : Droppable 위로 드래그하는 Draggable ID
+- `draggingFromThisWith` : 현재 Droppable에서 벗어난 드래깅되고 있는 Draggable ID
+- `isUsingPlaceholder` : placeholder가 사용되고 있는지 여부
+
+색, 카드 모양 변경
+
+```ts
+// Board.tsx
+const Area = styled.p<IAreaProps>`
+  background-color: ${(props) =>
+    props.isDraggingOver
+      ? "pink"
+      : props.isDraggingFromThis
+      ? "red"
+      : "darkblue"};
+  flex-grow: 1;
+  transition: background-color 0.3s ease-in-out;
+`;
+
+interface IAreaProps {
+  isDraggingOver: boolean;
+  isDraggingFromThis: boolean;
+}
+
+<Droppable droppableId={boardId}>
+  {(magic, snapshot) => (
+    <Area
+      isDraggingOver={snapshot.isDraggingOver}
+      isDraggingFromThis={Boolean(snapshot.draggingFromThisWith)}
+      ref={magic.innerRef}
+      {...magic.droppableProps}
+    >
+      {toDos.map((toDo, index) => (
+        <DraggableCard key={toDo} toDo={toDo} index={index} />
+      ))}
+      {magic.placeholder}
+    </Area>
+  )}
+</Droppable>;
+```
+
+# 폼 추가
+
+## ref
+
+react를 이용해 html요소를 지정하고 가져오는 방법
+
+```ts
+video.play();
+//
+const videoRef = useRef(null);
+const onClick = () => {
+  videoRef.current?.play();
+};
+<video ref={videoRef} />;
+// document.querySelector(video)과 같은 방법
+```
+
+    // data에서 오는 실제 toDo를 만들어야 함

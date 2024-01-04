@@ -51,6 +51,7 @@ function App() {
       });
     }
   };
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <Wrapper>
