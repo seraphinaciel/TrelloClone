@@ -5,5 +5,11 @@ declare module "styled-components" {
     bg: string;
     board: string;
     card: string;
+    btn: string;
+    input: string;
+
+    inputBg: string;
+    color2: string;
+    color3: string;
   }
 }

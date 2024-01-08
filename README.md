@@ -358,9 +358,7 @@ interface IAreaProps {
 </Droppable>;
 ```
 
-# 폼 추가
-
-## ref
+# ref
 
 react를 이용해 html요소를 지정하고 가져오는 방법
 
@@ -375,6 +373,116 @@ const onClick = () => {
 // document.querySelector(video)과 같은 방법
 ```
 
-    // data에서 오는 실제 toDo를 만들어야 함
+# 폼 추가
 
-string에서 object라고 알려주려고 prop 변경
+```ts
+// App.tsx
+interface IForm {
+  toDo: string;
+}
+const { register, setValue, handleSubmit } = useForm<IForm>();
+// data로 오는 toDo를 실제로 만들어야 함(Creating Tasks 참고)
+const onValid = ({ toDo }: IForm) => {
+  setValue("toDo", "");
+};
+
+function App() {
+  return (
+    <Form onSubmit={handleSubmit(onValid)}>
+      <input
+        {...register("toDo", { required: true })}
+        placeholder={`${boardId}에 할 일 추가`}
+        type="text"
+      />
+    </Form>
+  );
+}
+```
+
+# Creating Tasks
+
+1. data에서 오는 실제 toDo를 만들어야 함
+   현재, onDragEnd의 droppableId(string)를 toDo의 value로 사용하고 있었음
+
+```ts
+// atoms.tsx
+// string을 object로 변경
+export interface IToDo {
+  id: number;
+  text: string;
+}
+interface IToDoState {
+  // 여러개의 보드와 그 안의 배열들
+  [key: string]: IToDo[];
+}
+```
+
+2. 보드들의 toDo가 string에서 object(IToDo의 array)로 변경되었음을 알려줘야함
+   각 페이지의 prop 변경
+
+3. object를 삭제 하기 전에 먼저 object를 grab 해야 한다. taskObj
+
+```ts
+// droppableId가 string
+["a", "b"] ->["b", "a" ] // 마우스로 내용 변경이 가능
+
+//
+[{text:"hello", id:1}, {text:"hello", id:2}]
+// 마우스 움직일 때 받을 수 있는 정보는 1,2, 외에는 아무것도 없음
+// id를 가지고 toDo의 item을 찾아야 함
+// id:2의 내용을 어딘가에 저장시키고, 삭제하고, 다시 원하는 위치에 더함
+```
+
+4. id를 이용해 to do(droppableId)를 찾거나, to do(droppableId)가 있는 위치를 찾기
+
+```ts
+// App.tsx
+if (destination?.droppableId === source.droppableId) {
+  setToDos((allBoards) => {
+    const boardCopy = [...allBoards[source.droppableId]];
+    // todo object를 찾아서 잠깐 잡아둠,옮기려는 to do object 전체를 가져다 준다.
+    const taskObj = boardCopy[source.index];
+    boardCopy.splice(source.index, 1);
+    boardCopy.splice(destination?.index, 0, taskObj);
+    return {
+      ...allBoards,
+      [source.droppableId]: boardCopy,
+    };
+  });
+}
+
+if (destination?.droppableId !== source.droppableId) {
+  setToDos((allBoards) => {
+    const sourceBoard = [...allBoards[source.droppableId]];
+    const taskObj = sourceBoard[source.index];
+    const destinationBoard = [...allBoards[destination.droppableId]];
+    sourceBoard.splice(source.index, 1);
+    destinationBoard.splice(destination?.index, 0, taskObj);
+    return {
+      ...allBoards,
+      [source.droppableId]: sourceBoard,
+      [destination.droppableId]: destinationBoard,
+    };
+  });
+}
+
+// Board.tsx
+setToDos((allBoards) => {
+  return {
+    // 이전의 board들을 가져와 새로운 배열로 리턴
+    ...allBoards,
+    // 현재 속한 board의 정보만 업데이트 : 기존 보드들의 내용,newTodo
+    // "해야할 일" : [...allBoards["해야할 일"], newTodo]
+    [boardId]: [...allBoards[boardId], newTodo],
+  };
+});
+```
+
+# Framer Motion
+
+React용 production-ready 모션 라이브러리 (오픈 소스)
+
+https://www.framer.com/motion
+https://github.com/framer/motion
+
+npx create-react-app my-app --template typescript
